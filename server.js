@@ -84,7 +84,10 @@ app.get('/auth/google/callback',
   }
 );
 
-app.get('/auth/logout', (req, res) => {});
+app.get('/auth/logout', (req, res) => {
+  req.logout(); //Removes req.user and clears any logged in session
+  return res.redirect('/');
+});
 
 app.get('/secret', checkLoggedIn, (req, res) => {
   return res.send('Your personal secret value is 42!');
