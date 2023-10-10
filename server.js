@@ -39,8 +39,22 @@ app.use(helmet());
 app.use(cookieSession({
   name: 'session',
   maxAge: 24 * 60 * 60 * 1000,
-  keys: [ config.COOKIE_KEY_1, config.COOKIE_KEY_2 ],
+  keys: [config.COOKIE_KEY_1, config.COOKIE_KEY_2],
 }));
+app.use((req, res, next) => {
+  if (req.session && !req.session.regenerate) {
+    req.session.regenerate = (cb) => {
+      cb();
+    };
+  }
+  if (req.session && !req.session.save) {
+    req.session.save = (cb) => {
+      cb();
+    };
+  }
+  next();
+});
+
 app.use(passport.initialize());
 
 function checkLoggedIn(req, res, next) {
@@ -53,23 +67,23 @@ function checkLoggedIn(req, res, next) {
   next();
 }
 
-app.get('/auth/google', 
+app.get('/auth/google',
   passport.authenticate('google', {
     scope: ['email'],
   }));
 
-app.get('/auth/google/callback', 
+app.get('/auth/google/callback',
   passport.authenticate('google', {
     failureRedirect: '/failure',
     successRedirect: '/',
     session: false,
-  }), 
+  }),
   (req, res) => {
     console.log('Google called us back!');
   }
 );
 
-app.get('/auth/logout', (req, res) => {});
+app.get('/auth/logout', (req, res) => { });
 
 app.get('/secret', checkLoggedIn, (req, res) => {
   return res.send('Your personal secret value is 42!');
